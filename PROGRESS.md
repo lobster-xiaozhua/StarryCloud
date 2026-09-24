@@ -1,9 +1,9 @@
 | ID | 名称                      | 状态 | 完成日期 | commit | 备注 |
 |----|---------------------------|------|----------|--------|------|
 | T0 | 契约冻结                  | ✅ 完成 | 2026-09-24 | 49f514a | git tag contracts-v1 |
-| T1 | Provider + 第一行流式输出 | 🚧 进行中 | 2026-09-24 | - | 代码完成+tsc通过；smoke 待人类提供 LLM key |
+| T1 | Provider + 第一行流式输出 | ✅ 完成 | 2026-09-24 | 533a3b7 | 代码+tsc通过；T1 smoke 已用 SenseNova 跑通（流式输出+finishReason=stop）|
 | T2 | DB worker + 迁移          | ✅ 完成 | 2026-09-24 | - | child_process.fork 替代 worker_threads（环境限制，见 ISSUES）；test:db 5/5 通过 |
-| T3 | SSE bus + ring            | ⬜ 未开始 | - | - | - |
+| T3 | SSE bus + ring            | ✅ 完成 | 2026-09-24 | - | test:sse 5/5 通过 |
 | T4 | REST 路由                 | ⬜ 未开始 | - | - | - |
 | T5 | 前端最小聊天              | ⬜ 未开始 | - | - | - |
 | T6 | 沙箱镜像                  | ⬜ 未开始 | - | - | - |
