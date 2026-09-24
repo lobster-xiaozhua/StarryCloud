@@ -1,20 +1,12 @@
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, expect, it } from 'vitest';
 import { containerName, containers, workspacePath } from './manager.ts';
+import { dockerSuite } from './docker-guard.ts';
 
 // 沙箱内无法 build aiw-sandbox 镜像（apt/nodejs.org 不可达）。
-// 镜像缺失时整组测试自跳过，套件保持绿色；在能联网的机器上会真实执行。
-function hasSandboxImage(): boolean {
-  try {
-    execFileSync('docker', ['inspect', 'aiw-sandbox:latest'], { stdio: 'ignore' });
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-const suite = hasSandboxImage() ? describe : describe.skip;
+// 镜像缺失时：默认打印 [SKIP] 并整组跳过；AIW_REQUIRE_DOCKER=1 时改为失败，强制真跑。
+const suite = dockerSuite('container/manager');
 
 suite('container/manager', () => {
   const convId = `test-mgr-${Math.random().toString(36).slice(2, 8)}`;

@@ -1,19 +1,12 @@
 import { execFileSync } from 'node:child_process';
-import { describe, expect, it } from 'vitest';
+import { expect, it } from 'vitest';
 import { containerName, containers } from './manager.ts';
 import { execInContainer } from './exec.ts';
+import { dockerSuite } from './docker-guard.ts';
 
-// 沙箱内无法 build aiw-sandbox 镜像；镜像缺失时整组自跳过。
-function hasSandboxImage(): boolean {
-  try {
-    execFileSync('docker', ['inspect', 'aiw-sandbox:latest'], { stdio: 'ignore' });
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-const suite = hasSandboxImage() ? describe : describe.skip;
+// 沙箱内无法 build aiw-sandbox 镜像。
+// 镜像缺失时：默认打印 [SKIP] 并整组跳过；AIW_REQUIRE_DOCKER=1 时改为失败，强制真跑。
+const suite = dockerSuite('container/exec');
 
 suite('container/exec', () => {
   const convId = `test-exec-${Math.random().toString(36).slice(2, 8)}`;
