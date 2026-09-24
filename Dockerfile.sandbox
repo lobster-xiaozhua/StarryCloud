@@ -1,0 +1,14 @@
+FROM debian:bookworm-slim
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    bash coreutils findutils grep sed gawk util-linux procps \
+    python3 python3-pip python3-venv \
+    curl xz-utils ca-certificates git \
+    && rm -rf /var/lib/apt/lists/*
+# 装 node20（用 tarball，不用 curl|bash）
+RUN curl -fsSL https://nodejs.org/dist/v20.18.0/node-v20.18.0-linux-x64.tar.xz \
+    | tar -xJ -C /usr/local --strip-components=1
+# 移除 sudo（容器内不需要）
+RUN apt-get purge -y sudo || true
+RUN useradd -m -u 1000 -s /bin/bash sandbox
+USER sandbox
+WORKDIR /workspace
