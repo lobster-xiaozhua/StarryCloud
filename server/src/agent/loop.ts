@@ -1,6 +1,7 @@
 import { db } from '../db/client.ts';
 import { bus } from '../sse/bus.ts';
 import { runs } from '../runs.ts';
+import fs from 'node:fs';
 import type { Provider } from '../provider/types.ts';
 import { openaiProvider } from '../provider/openai.ts';
 import { CIRCUIT } from './circuit.ts';
@@ -8,6 +9,8 @@ import { compressContext } from './context.ts';
 import { tools, type ToolCtx } from './tools.ts';
 import type { ToolName, ToolOutput, ToolSpec } from '@aiw/contracts/tools';
 import type { ChatMessage, MessagePart } from '@aiw/contracts/messages';
+
+const SYSTEM_PROMPT = fs.readFileSync(new URL('../prompts/system.md', import.meta.url), 'utf8');
 
 const MODEL = process.env.MODEL ?? 'sensenova-6.8-flash-lite';
 
@@ -87,7 +90,11 @@ export async function runAgent(
       role: 'user',
       parts: [{ type: 'text', text: userInput }],
     };
-    const messages: ChatMessage[] = [...compressed, userChat];
+    const systemMsg: ChatMessage = {
+      role: 'system',
+      parts: [{ type: 'text', text: SYSTEM_PROMPT }],
+    };
+    const messages: ChatMessage[] = [systemMsg, ...compressed, userChat];
 
     let toolCallCount = 0;
     let lastHash = '';
