@@ -2,7 +2,7 @@ import { h } from 'preact';
 import htm from 'htm';
 import { useState, useEffect, useRef, useCallback } from 'preact/hooks';
 import type { MessageDTO } from '@aiw/contracts/api';
-import { getState, setState, useStore } from './store.ts';
+import { getState, setState, useStore, type ChatMessageView, type ToolBlockState } from './store.ts';
 import * as api from './api.ts';
 import { ConversationList } from './components/ConversationList.tsx';
 import { ChatStream } from './components/ChatStream.tsx';
@@ -65,7 +65,7 @@ export function App() {
       const es = new EventSource(`/api/runs/${runId}/stream`);
       esRef.current = es;
 
-      let assistant: MessageDTO = {
+      let assistant: ChatMessageView = {
         id: 'asst-' + runId,
         conversationId: currentConvId,
         role: 'assistant',
@@ -73,31 +73,110 @@ export function App() {
         seq: userMsg.seq + 1,
         status: 'streaming',
         createdAt: Date.now(),
+        toolBlocks: [],
       };
       setState({ messages: [...getState().messages, assistant] });
 
-      const replaceAssistant = (next: MessageDTO) => {
+      const replaceAssistant = (next: ChatMessageView) => {
         const all = getState().messages;
         setState({ messages: [...all.slice(0, -1), next] });
       };
 
+      // 契约（@aiw/contracts/events）：SSE 的 data 行就是 seq 所在的那层负载本身，
+      // 形如 {"seq":1,"content":"..."}，不是 {data:{...}} 包裹体。此前按包裹体解析，
+      // 导致首个 delta 即抛 TypeError、助手消息永远为空且工具块不渲染（见 ISSUES T12）。
       es.addEventListener('delta', (e: MessageEvent) => {
-        const ev = JSON.parse(e.data) as { data: { content: string } };
-        assistant = { ...assistant, content: assistant.content + ev.data.content };
+        const ev = JSON.parse(e.data) as { seq: number; content: string };
+        assistant = { ...assistant, content: assistant.content + ev.content };
         replaceAssistant(assistant);
       });
+
+      // T12：工具过程块
+      es.addEventListener('tool_start', (e: MessageEvent) => {
+        const ev = JSON.parse(e.data) as {
+          seq: number;
+          toolCallId: string;
+          name: string;
+          input: unknown;
+        };
+        const blocks = [...(assistant.toolBlocks ?? [])];
+        blocks.push({
+          toolCallId: ev.toolCallId,
+          name: ev.name,
+          input: ev.input,
+          done: false,
+        });
+        assistant = { ...assistant, toolBlocks: blocks };
+        replaceAssistant(assistant);
+      });
+      es.addEventListener('tool_delta', (e: MessageEvent) => {
+        const ev = JSON.parse(e.data) as {
+          seq: number;
+          toolCallId: string;
+          chunk: string;
+        };
+        const blocks = (assistant.toolBlocks ?? []).map((b: ToolBlockState) =>
+          b.toolCallId === ev.toolCallId
+            ? { ...b, output: (b.output ?? '') + ev.chunk }
+            : b,
+        );
+        assistant = { ...assistant, toolBlocks: blocks };
+        replaceAssistant(assistant);
+      });
+      es.addEventListener('tool_end', (e: MessageEvent) => {
+        // tool_end 的 data 形如 { seq, toolCallId, output: ToolOutput }，
+        // ToolOutput 才是 { exitCode, stdout, stderr, truncated, aborted, ... }
+        const ev = JSON.parse(e.data) as {
+          seq: number;
+          toolCallId: string;
+          output: {
+            exitCode: number | null;
+            stdout: string;
+            stderr: string;
+            truncated: boolean;
+            aborted: boolean;
+            durationMs: number;
+            note?: string;
+          };
+        };
+        const o = ev.output;
+        const text = [
+          `exit_code: ${o.exitCode === null ? 'null' : o.exitCode}`,
+          o.aborted ? '(aborted)' : '',
+          'stdout:',
+          o.stdout || '(empty)',
+          o.stderr ? 'stderr:' : '',
+          o.stderr,
+          o.truncated ? `(output truncated; full log: ${o.note ?? 'n/a'})` : '',
+        ]
+          .filter((x) => x !== '')
+          .join('\n');
+        const blocks = (assistant.toolBlocks ?? []).map((b: ToolBlockState) =>
+          b.toolCallId === ev.toolCallId
+            ? {
+                ...b,
+                done: true,
+                exitCode: o.exitCode,
+                aborted: o.aborted,
+                output: text,
+              }
+            : b,
+        );
+        assistant = { ...assistant, toolBlocks: blocks };
+        replaceAssistant(assistant);
+      });
+
       es.addEventListener('done', (e: MessageEvent) => {
-        const ev = JSON.parse(e.data) as { data: { finishReason: string } };
+        void (JSON.parse(e.data) as { finishReason: string });
         assistant = { ...assistant, status: 'complete' };
         replaceAssistant(assistant);
         es.close();
         esRef.current = null;
         setState({ streaming: false });
-        void ev;
       });
       es.addEventListener('error', (e: MessageEvent) => {
-        const ev = JSON.parse(e.data) as { data: { message: string } };
-        setState({ error: ev.data.message });
+        const ev = JSON.parse(e.data) as { message: string };
+        setState({ error: ev.message });
       });
       es.onerror = () => {
         es.close();

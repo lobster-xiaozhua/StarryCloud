@@ -1,10 +1,25 @@
 import { useState, useEffect } from 'preact/hooks';
 import type { ConversationDTO, MessageDTO } from '@aiw/contracts/api';
 
+export interface ToolBlockState {
+  toolCallId: string;
+  name: string;
+  input?: unknown;
+  output?: string;
+  exitCode?: number | null;
+  aborted?: boolean;
+  done: boolean;
+}
+
+// 在 MessageDTO 之上扩展流式过程中的工具块（仅前端渲染用，不入库）
+export interface ChatMessageView extends MessageDTO {
+  toolBlocks?: ToolBlockState[];
+}
+
 export interface AppState {
   conversations: ConversationDTO[];
   currentConvId: string | null;
-  messages: MessageDTO[];
+  messages: ChatMessageView[];
   streaming: boolean;
   error: string | null;
 }
