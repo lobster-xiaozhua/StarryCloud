@@ -1,0 +1,29 @@
+{
+  "name": "@aiw/server",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "test": "vitest run",
+    "test:db": "vitest run src/db",
+    "test:provider": "vitest run src/provider",
+    "test:container": "vitest run src/container",
+    "test:agent": "vitest run src/agent",
+    "test:sse": "vitest run src/sse",
+    "test:tools": "vitest run src/agent/tools.test.ts",
+    "test:exec": "vitest run src/container/exec.test.ts"
+  },
+  "dependencies": {
+    "@aiw/contracts": "*",
+    "better-sqlite3": "^11.8.1",
+    "express": "^4.21.2",
+    "openai": "^4.77.0",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.12",
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.10.2",
+    "vitest": "^2.1.8"
+  }
+}

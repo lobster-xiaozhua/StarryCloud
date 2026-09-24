@@ -1,0 +1,12 @@
+{
+  "name": "@aiw/contracts",
+  "private": true,
+  "type": "module",
+  "version": "0.1.0",
+  "exports": {
+    "./messages": "./messages.ts",
+    "./tools": "./tools.ts",
+    "./events": "./events.ts",
+    "./api": "./api.ts"
+  }
+}

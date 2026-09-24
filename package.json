@@ -1,0 +1,25 @@
+{
+  "name": "ai-workbench",
+  "private": true,
+  "type": "module",
+  "workspaces": ["contracts", "server", "web"],
+  "scripts": {
+    "dev": "concurrently 'npm -w server run dev' 'npm -w web run dev'",
+    "check": "tsc --noEmit -p contracts && tsc --noEmit -p server && tsc --noEmit -p web && npm run test:all",
+    "test:all": "npm -w server run test",
+    "test:db": "npm -w server run test:db",
+    "test:provider": "npm -w server run test:provider",
+    "test:container": "npm -w server run test:container",
+    "test:agent": "npm -w server run test:agent",
+    "test:sse": "npm -w server run test:sse",
+    "test:tools": "npm -w server run test:tools",
+    "test:exec": "npm -w server run test:exec",
+    "dev:web": "npm -w web run dev"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2",
+    "tsx": "^4.19.2",
+    "concurrently": "^9.1.0",
+    "vitest": "^2.1.8"
+  }
+}
