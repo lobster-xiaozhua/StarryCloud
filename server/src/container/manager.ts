@@ -63,7 +63,7 @@ export const containers = {
         '--ulimit',
         'nproc=512:512',
         '--ulimit',
-        'fsize=2g:2g',
+        'fsize=2147483648:2147483648',
         '--network=none',
         'aiw-sandbox:latest',
         'sleep',
