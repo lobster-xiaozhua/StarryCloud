@@ -13,6 +13,6 @@
 | T10 | agent/loop + circuit     | ✅ 完成 | 2026-09-24 | e8830db | loop.ts/circuit.ts + 压缩占位 context.ts；mock provider/工具测试 2/2 通过；全服务 37 测试绿 · tag t10-done |
 | T11 | 系统提示词                | ✅ 完成 | 2026-09-24 | e3b6106 | prompts/system.md 已写并接入 loop.ts（system 消息前置）· tag t11-done |
 | T12 | 前端工具过程展示          | ✅ 完成 | 2026-09-24 | 4017f1c | ToolBlock.tsx + ChatStream 补丁 + app.tsx 事件接线 + style.css；**修复 P0：SSE 负载解析错层（见 ISSUES）**；Chromium 真实驱动验收通过 |
-| T13 | abort 全链路              | ✅ 完成 | 2026-09-24 | - | POST /api/runs/:runId/abort → handle.abort.abort() → provider/exec signal 联动；abort.test 2/2 + HTTP 实测通过 |
-| T14 | 上下文压缩                | ⬜ 未开始 | - | - | - |
+| T13 | abort 全链路              | ✅ 完成 | 2026-09-24 | de2bdd0 | POST /api/runs/:runId/abort → handle.abort.abort() → provider/exec signal 联动；abort.test 2/2 + HTTP 实测通过 |
+| T14 | 上下文压缩                | ✅ 完成 | 2026-09-24 | - | context.ts：8KB 上限/最近6轮全量/更早 tool 摘要/超60%窗口触发摘要；20 轮压至 30.9%（<40% 达标）|
 | T15 | 启动恢复                  | ⬜ 未开始 | - | - | - |
