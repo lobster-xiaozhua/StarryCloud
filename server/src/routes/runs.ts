@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { bus } from '../sse/bus.ts';
+import { runs } from '../runs.ts';
 
 export const runsRouter = Router();
 
@@ -31,4 +32,22 @@ runsRouter.get('/:runId/stream', (req, res) => {
     clearInterval(ping);
     unsub();
   });
+});
+
+// T13：abort 全链路。按 runId 找到进行中的 handle，触发其 AbortSignal，
+// 由 agent 主循环与 execInContainer 的 signal 监听共同收束，最终以 done(aborted) 结束。
+runsRouter.post('/:runId/abort', (req, res) => {
+  const runId = req.params.runId!;
+
+  let handle = null as null | { runId: string; convId: string; abort: AbortController };
+  for (const h of runs.values()) {
+    if (h.runId === runId) {
+      handle = h;
+      break;
+    }
+  }
+  if (!handle) return res.status(404).json({ error: 'run not found or already finished' });
+
+  handle.abort.abort();
+  res.json({ ok: true, runId });
 });

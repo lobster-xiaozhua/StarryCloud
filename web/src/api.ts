@@ -50,3 +50,8 @@ export async function sendMessage(
   const data = await json<SendMessageRes>(res);
   return data.runId;
 }
+
+// T13：中断进行中的 run（服务端触发 AbortSignal，最终以 done(aborted) 收尾）
+export async function abortRun(runId: string): Promise<void> {
+  await fetch(`${BASE}/runs/${runId}/abort`, { method: 'POST' });
+}

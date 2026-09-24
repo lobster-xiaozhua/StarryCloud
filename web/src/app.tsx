@@ -17,6 +17,7 @@ export function App() {
   const error = useStore((s) => s.error);
   const [input, setInput] = useState('');
   const esRef = useRef<EventSource | null>(null);
+  const runIdRef = useRef<string | null>(null);
 
   const refreshConversations = useCallback(async () => {
     const list = await api.listConversations();
@@ -38,10 +39,17 @@ export function App() {
     await selectConv(conv.id);
   }, [refreshConversations, selectConv]);
 
+  // T13：停止 = 通知服务端 abort（触发 AbortSignal），并保持 SSE 订阅
+  // 继续接收最终的 done(aborted)，由 done 处理器负责收尾关闭。
   const stopStream = useCallback(() => {
-    esRef.current?.close();
-    esRef.current = null;
-    setState({ streaming: false });
+    const rid = runIdRef.current;
+    if (rid) void api.abortRun(rid);
+    else {
+      // 没有 runId（连接尚未建立）时退化为直接断开
+      esRef.current?.close();
+      esRef.current = null;
+      setState({ streaming: false });
+    }
   }, []);
 
   const send = useCallback(async () => {
@@ -62,6 +70,8 @@ export function App() {
 
     try {
       const runId = await api.sendMessage(currentConvId, content);
+      // 记住 runId，供「停止」按钮调用 abort 端点
+      runIdRef.current = runId;
       const es = new EventSource(`/api/runs/${runId}/stream`);
       esRef.current = es;
 
@@ -172,6 +182,7 @@ export function App() {
         replaceAssistant(assistant);
         es.close();
         esRef.current = null;
+        runIdRef.current = null;
         setState({ streaming: false });
       });
       es.addEventListener('error', (e: MessageEvent) => {
