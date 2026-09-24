@@ -10,7 +10,7 @@
 | T7 | container/cli + manager   | ✅ 完成 | 2026-09-24 | - | cli.ts/manager.ts/manager.test.ts；镜像缺失时 5 测试自跳过（沙箱），tsc=0 |
 | T8 | container/exec            | ✅ 完成 | 2026-09-24 | - | exec.ts/exec.test.ts；超时/abort 改 Node 侧实现（setsid 在 Docker 27.x 会丢退出码，见 ISSUES）；临时 debian 别名真实跑通 12/12 |
 | T9 | 工具注册表                | ✅ 完成 | 2026-09-24 | - | tools.ts/tools.test.ts；zod 校验 + /workspace 前缀强制 + base64 写；校验用例实跑 10/10 |
-| T10 | agent/loop + circuit     | ⬜ 未开始 | - | - | - |
+| T10 | agent/loop + circuit     | ✅ 完成 | 2026-09-24 | - | loop.ts/circuit.ts + 容器压缩占位 context.ts；mock provider/工具测试 2/2 通过；全服务 37 测试绿 |
 | T11 | 系统提示词                | ⬜ 未开始 | - | - | - |
 | T12 | 前端工具过程展示          | ⬜ 未开始 | - | - | - |
 | T13 | abort 全链路              | ⬜ 未开始 | - | - | - |
